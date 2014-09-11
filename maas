@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+
+require 'cgi'
+
+cgi  = CGI.new
+text = []
+
+client   = ENV['REMOTE_ADDR'] || 'localhost'
+lockdir  = '/var/tmp/maas/lock'
+lockfile = "#{lockdir}/#{client}"
+
+cycles = 1
+if cgi.has_key?('cycles')
+  if cgi['cycles'].match(/^\d+$/)
+    cycles = cgi['cycles']
+  else
+    text << "WARNING: invalid 'cycles' parameter, ignored"
+  end
+end
+
+target = client || 'localhost'
+if cgi.has_key?('target')
+  if cgi['target'].match(/^[\w.-]+$/)
+    target = cgi['target']
+  else
+    text << "WARNING: invalid 'target' parameter, ignored"
+  end
+end
+
+lock = File.open(lockfile, File::RDWR | File::CREAT)
+if lock.flock(File::LOCK_EX | File::LOCK_NB)
+  text << %x[ mtr --report-wide --report-cycles #{cycles} #{target} 2>&1 ]
+  status = $?.exitstatus == 0 ? '200 OK' : '500 Sad server is sad'
+else
+  text << "ERROR: already doing a trace for you"
+  status = '500 Busyjustnow'
+end
+
+cgi.out('type'  => 'text/plain', 'server' => 'maas 0.1', 'status' => status) { text.join("\n") }
