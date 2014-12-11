@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+# See README.md for details, license and copyright
+
 require 'cgi'
 
 cgi  = CGI.new
@@ -38,4 +40,3 @@ else
 end
 
 cgi.out('type'  => 'text/plain', 'server' => 'maas 0.1', 'status' => status) { text.join("\n") }
-
