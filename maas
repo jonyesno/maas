@@ -30,7 +30,7 @@ end
 
 lock = File.open(lockfile, File::RDWR | File::CREAT)
 if lock.flock(File::LOCK_EX | File::LOCK_NB)
-  text << %x[ mtr --report-wide --report-cycles #{cycles} #{target} 2>&1 ]
+  text << %x[ mtr --report --report-wide --report-cycles #{cycles} #{target} 2>&1 ]
   status = $?.exitstatus == 0 ? '200 OK' : '500 Sad server is sad'
 else
   text << "ERROR: already doing a trace for you"
@@ -38,3 +38,4 @@ else
 end
 
 cgi.out('type'  => 'text/plain', 'server' => 'maas 0.1', 'status' => status) { text.join("\n") }
+
